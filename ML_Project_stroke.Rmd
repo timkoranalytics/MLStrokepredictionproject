@@ -1,0 +1,686 @@
+---
+title: "ML_PROJECT"
+output: html_document
+date: "2025-04-17"
+---
+
+```{r}
+library(tidyverse)
+test <- read.csv("healthcare-dataset-stroke-data.csv")
+test$bmi <- as.numeric(test$bmi)
+test$bmi[is.na(test$bmi)] <- median(test$bmi, na.rm = TRUE)
+
+stroke_data1 <- read.csv("healthcare-dataset-stroke-data.csv")
+  
+#Varaibles transformation
+stroke_data1$bmi <- as.numeric(stroke_data1$bmi)
+stroke_data1$bmi[is.na(stroke_data1$bmi)] <- median(stroke_data1$bmi, na.rm = TRUE)
+stroke_data1$smoking_status <- na_if(stroke_data1$smoking_status, "Unknown")
+stroke_data1$stroke <- as.numeric(stroke_data1$stroke)
+
+
+stroke_data1 <- stroke_data1 %>%
+  select(-id) %>%
+  filter(!is.na(smoking_status)) %>% 
+  filter(gender != "Other") 
+  
+
+sum(is.na(stroke_data1$smoking_status))
+sum(is.na(stroke_data1$bmi))
+
+
+```
+
+
+```{r}
+packages <- c("tidyverse", "ggplot2")
+install.packages(setdiff(packages, installed.packages()[, "Package"]))
+lapply(packages, library, character.only = TRUE)
+
+```
+
+
+```{r}
+library(tidyverse)
+ggplot(stroke_data1, aes(x = gender, fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Gender",
+       x = "Gender", y = "Count", fill = "Stroke") +
+  theme_minimal()
+```
+```{r}
+ggplot(stroke_data1, aes(x = factor(hypertension), fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Hypertension",
+       x = "Hypertension (0 = No, 1 = Yes)", y = "Proportion", fill = "Stroke") +
+  theme_minimal() +
+  facet_wrap(~gender)
+
+```
+```{r}
+ggplot(stroke_data1, aes(x = factor(heart_disease), fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Heart Disease",
+       x = "Heart Disease (0 = No, 1 = Yes)", y = "Proportion", fill = "Stroke") +
+  theme_minimal() +
+  facet_wrap(~gender)
+
+```
+```{r}
+ggplot(stroke_data1, aes(x = ever_married, fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Marital Status",
+       x = "Ever Married", y = "Proportion", fill = "Stroke") +
+  theme_minimal() +
+  facet_wrap(~gender)
+```
+```{r}
+ggplot(stroke_data1, aes(x = work_type, fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Work Type",
+       x = "Work Type", y = "Proportion", fill = "Stroke") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) 
+
+```
+```{r}
+ggplot(stroke_data1, aes(x = Residence_type, fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Residence Type",
+       x = "Residence Type", y = "Proportion", fill = "Stroke") +
+  theme_minimal() +
+  facet_wrap(~gender)
+```
+```{r}
+ggplot(stroke_data1, aes(x = smoking_status, fill = factor(stroke))) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("0" = "firebrick", "1" = "seagreen"),
+                    labels = c("0" = "No Stroke", "1" = "Stroke")) +
+  labs(title = "Stroke Distribution by Smoking Status",
+       x = "Smoking Status", y = "Proportion", fill = "Stroke") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  facet_wrap(~gender)
+```
+```{r}
+ggplot(stroke_data1, aes(x = age)) +
+  geom_histogram(fill = "skyblue", color = "black", bins = 30) +
+  labs(title = "Age Distribution", x = "Age", y = "Count") +
+  theme_minimal()
+
+ggplot(stroke_data1, aes(x = factor(stroke), y = age, fill = factor(stroke))) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("firebrick", "seagreen")) +
+  labs(title = "Age by Stroke Group", x = "Stroke", y = "Age") +
+  theme_minimal() +
+  facet_wrap(~gender)
+
+
+```
+```{r}
+ggplot(stroke_data1, aes(x = bmi)) +
+  geom_histogram(fill = "darkblue", color = "black", bins = 30) +
+  labs(title = "Age Distribution", x = "bmi", y = "Count") +
+  theme_minimal()
+
+ggplot(stroke_data1, aes(x = factor(stroke), y = bmi, fill = factor(stroke))) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("firebrick", "seagreen")) +
+  labs(title = "BMI by Stroke Group", x = "Stroke", y = "BMI") +
+  theme_minimal() +
+  facet_wrap(~gender)
+
+```
+```{r}
+ggplot(stroke_data1, aes(x = avg_glucose_level)) +
+  geom_histogram(fill = "purple", color = "black", bins = 30) +
+  labs(title = "Avarage Glucose level Distribution", x = "Glucose_level", y = "Count") +
+  theme_minimal()
+
+ggplot(stroke_data1, aes(x = factor(stroke), y = avg_glucose_level, fill = factor(stroke))) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("firebrick", "seagreen")) +
+  labs(title = "Avarage Glucose level by Stroke Group", x = "Glucose_level", y = "BMI") +
+  theme_minimal() +
+  facet_wrap(~gender)
+```
+
+Data prep for model building and correlation testing 
+
+```{r}
+# 0. Outliers detection and removal 
+#q1 <-quantile(stroke_data1$avg_glucose_level, probs=c(.25, .75), na.rm = FALSE)
+#iqr1 <- IQR(stroke_data1$avg_glucose_level)
+#up1 <- q1[2] + 1.5*iqr1
+#low1 <- q1[1] - 1.5*iqr1
+#stroke_data1 <- subset(stroke_data1, stroke_data1$avg_glucose_level > low1 & stroke_data1$avg_glucose_level < up1)
+
+boxplot(test$avg_glucose_level, main='Body Mass Index Distribution')
+boxplot(stroke_data1$avg_glucose_level, main='Body Mass Index Distribution_OutlierRemoved')
+```
+
+```{r}
+#q2 <-quantile(stroke_data1$bmi, probs=c(.25, .75), na.rm = FALSE)
+#iqr2 <- IQR(stroke_data1$bmi)
+#up2 <- q2[2] + 1.5*iqr2
+#low2 <- q2[1] - 1.5*iqr2
+#stroke_data1 <- subset(stroke_data1, stroke_data1$bmi > low2 & stroke_data1$bmi < up2)
+
+boxplot(test$bmi, main='Body Mass Index Distribution')
+boxplot(stroke_data1$bmi, main='Body Mass Index Distribution with Removed Outliers')
+```
+
+```{r}
+install.packages("fastDummies")
+library(corrplot)
+library(dplyr)
+library(scales)
+library(fastDummies)
+
+
+# 1. One-hot encoding (turning categorial variables into numeric for future model building)
+
+stroke_data2 <- stroke_data1 %>%
+  mutate(
+    # gender: we encode it as: Female = 0, Male = 1
+    gender = ifelse(gender == "Male", 1, 0),
+    
+    # ever_married: we encode it as: No = 0, Yes = 1
+    ever_married_Yes = ifelse(ever_married == "Yes", 1, 0),
+    
+    # Residence_type: we encode it as: Urban = 1, Rural = 0
+    residence_type = ifelse(Residence_type == "Urban", 1, 0),
+    
+    # smoking_status: we trasnform it into three binary variables 
+    smoke_formerly = ifelse(smoking_status == "formerly smoked", 1, 0),
+    smoke_never = ifelse(smoking_status == "never smoked", 1, 0),
+    smoke_current = ifelse(smoking_status == "smokes", 1, 0),
+    
+    # work_type: we transform it into 5 binary variables 
+    work_private = ifelse(work_type == "Private", 1, 0),
+    work_self = ifelse(work_type == "Self-employed", 1, 0),
+    work_govt = ifelse(work_type == "Govt_job", 1, 0),
+    work_children = ifelse(work_type == "children", 1, 0),
+    work_never = ifelse(work_type == "Never_worked", 1, 0)
+  ) %>% 
+    select(-work_type, -Residence_type, -smoking_status, -ever_married)  #since this columns still present in our df we should drop it 
+
+#correlation matrix building 
+  
+stroke_data_cor <- stroke_data2 %>% cor(method = "pearson", use = "pairwise.complete.obs")
+stroke_data_cor[, "stroke"]
+
+corrplot(stroke_data_cor, method = "number", number.digits = 1, number.cex = 0.5, tl.cex = 0.5)
+
+
+#Data normalization (normalizing all the numerical variables)
+
+stroke_data3 <- stroke_data2 %>%
+  select(age, hypertension, avg_glucose_level, work_self, stroke) %>%
+  mutate(
+    age = rescale(age, to = c(0, 1)),
+    hypertension = rescale(as.numeric(hypertension), to = c(0, 1)),
+    avg_glucose_level = rescale(avg_glucose_level, to = c(0, 1)),
+    work_self = rescale(as.numeric(work_self), to = c(0, 1)),
+    stroke = as.factor(stroke)
+  )
+
+```
+\subsection{Default Logistic regression:}
+
+```{r}
+install.packages(c("tidymodels", "themis", "glmnet", "yardstick"))
+install.packages("pROC")
+install.packages("ROSE")
+install.packages("caret")
+
+library(tidymodels)
+library(themis)
+library(glmnet)
+library(yardstick)
+library(ROSE)
+library(pROC)
+library(caret)
+
+# Splitting our data into train and test sample 
+
+set.seed(123)
+n <- nrow(stroke_data3)
+train_index <- sample(1:n, size = 0.8 * n)
+
+train_data_2 <- stroke_data3[train_index, ]
+test_data_2 <- stroke_data3[-train_index, ]
+
+# Using glm() function to build logistic regression
+model <- glm(stroke ~ ., data = train_data_2, family = binomial)
+
+# Predictions on the test sample 
+prob_predictions <- predict(model, newdata = test_data_2, type = "response")
+
+# Trasnfering probabilities into classes 
+class_predictions <- ifelse(prob_predictions > 0.5, 1, 0)
+class_predictions <- factor(class_predictions, levels = c(0, 1))
+test_data_2$stroke <- factor(test_data_2$stroke, levels = c(0, 1))
+
+# Confusion matrix 
+conf_matrix_default <- confusionMatrix(as.factor(class_predictions), as.factor(test_data_2$stroke))
+print(conf_matrix_default)
+
+# Roc curve 
+roc_curve_def <- roc(test_data_2$stroke, prob_predictions)
+auc_value_def <- auc(roc_curve_def)
+print(paste("AUC: ", auc_value_def))
+plot(roc_curve_def, main = "ROC Curve for Default Model", col = "blue", lwd = 2)
+
+# Extraction of TP, FP, TN and FN from the confusion matrix 
+TP <- conf_matrix_default$table[2, 2]  # True Positives
+FP <- conf_matrix_default$table[1, 2]  # False Positives
+TN <- conf_matrix_default$table[1, 1]  # True Negatives
+FN <- conf_matrix_default$table[2, 1]  # False Negatives
+
+# Calculating Precision, Recall, F1
+precision <- TP / (TP + FP)
+recall <- TP / (TP + FN)
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+# Results 
+cat("Precision: ", precision, "\n")
+cat("Recall: ", recall, "\n")
+cat("F1: ", f1_score, "\n")
+
+```
+
+\subsection{Logistic regression with Oversampling technique}: 
+
+```{r}
+library(tidymodels)
+library(themis)
+library(glmnet)
+library(yardstick)
+library(ROSE)
+library(pROC)
+library(caret)
+
+# Splitting our data again into test and train samples
+
+set.seed(123)
+n <- nrow(stroke_data3)
+train_index <- sample(1:n, size = 0.8 * n)
+
+train_data_3 <- stroke_data3[train_index, ]
+test_data_3 <- stroke_data3[-train_index, ]
+
+# Balancing our data with oversampling method 
+balanced_data <- ovun.sample(stroke ~ ., 
+                             data = train_data_3, 
+                             method = "over", 
+                             N = 2 * table(train_data_3$stroke)[1])$data
+
+# Building model on the balanced data
+model_balanced <- glm(stroke ~ ., 
+                      data = balanced_data, 
+                      family = binomial)
+
+# Predictions on the test sample 
+prob_predictions_balanced <- predict(model_balanced, 
+                                     newdata = test_data_3, 
+                                     type = "response")
+
+# Transfering probabilities into classes
+class_predictions_balanced <- ifelse(prob_predictions_balanced > 0.5, 1, 0)
+
+
+# Predictions on the train sample
+prob_predictions_train <- predict(model_balanced, 
+                                  newdata = balanced_data, 
+                                  type = "response")
+
+class_predictions_train <- ifelse(prob_predictions_train > 0.5, 1, 0)
+
+# Confusion matrix — Train
+conf_matrix_train <- confusionMatrix(as.factor(class_predictions_train), 
+                                     as.factor(balanced_data$stroke))
+conf_matrix_train
+
+# ROC curve — Train
+roc_curve_train <- roc(balanced_data$stroke, prob_predictions_train)
+auc_value_train <- auc(roc_curve_train)
+print(paste("AUC (Train):", auc_value_train))
+
+# Plot ROC for Train
+plot(roc_curve_train, 
+     main = "ROC Curve for Training Set", 
+     col = "darkgreen", 
+     lwd = 2)
+
+# Train metrics
+TP2 <- conf_matrix_train$table[2, 2]
+FP2 <- conf_matrix_train$table[1, 2]
+TN2 <- conf_matrix_train$table[1, 1]
+FN2 <- conf_matrix_train$table[2, 1]
+
+precision2 <- TP2 / (TP2 + FP2)
+recall2 <- TP2 / (TP2 + FN2)
+f1_score2 <- 2 * (precision2 * recall2) / (precision2 + recall2)
+
+cat("TRAIN Precision: ", precision2, "\n")
+cat("TRAIN Recall: ", recall2, "\n")
+cat("TRAIN F1: ", f1_score2, "\n")
+
+# Confusion matrix for the test sample 
+conf_matrix_balanced <- confusionMatrix(as.factor(class_predictions_balanced), 
+                                        as.factor(test_data_3$stroke))
+conf_matrix_balanced
+
+# AUC 
+roc_curve <- roc(test_data_3$stroke, 
+                 prob_predictions_balanced)
+
+auc_value <- auc(roc_curve)
+print(paste("AUC: ", auc_value))
+
+# Metrics for the test samle 
+TP1 <- conf_matrix_balanced$table[2, 2]  # True Positives
+FP1 <- conf_matrix_balanced$table[1, 2]  # False Positives
+TN1 <- conf_matrix_balanced$table[1, 1]  # True Negatives
+FN1 <- conf_matrix_balanced$table[2, 1]  # False Negatives
+
+# Calculating Precision, Recall, F1
+precision1 <- TP1 / (TP1 + FP1)
+recall1 <- TP1 / (TP1 + FN1)
+f1_score1 <- 2 * (precision1 * recall1) / (precision1 + recall1)
+
+# Results
+cat("TEST Precision: ", precision1, "\n")
+cat("TEST Recall: ", recall1, "\n")
+cat("TEST F1: ", f1_score1, "\n")
+```
+
+```{r}
+library(tidymodels)
+library(themis)
+library(glmnet)
+library(yardstick)
+library(caret)
+library(pROC)
+
+# Разбиение данных на тренировочные и тестовые
+set.seed(123)
+n <- nrow(stroke_data3)
+train_index <- sample(1:n, size = 0.8 * n)
+
+train_data_5 <- stroke_data3[train_index, ]
+test_data_5 <- stroke_data3[-train_index, ]
+
+# Преобразуем данные в рецепты
+rec <- recipe(stroke ~ ., data = train_data_5) %>%
+  step_smote(stroke, over_ratio = 1)  # Применяем SMOTE
+
+# Применяем рецепт для подготовки сбалансированных данных
+train_data_smote <- prep(rec, training = train_data_5) %>% bake(new_data = NULL)
+
+# Построение модели с логистической регрессией на сбалансированных данных
+model_smote <- glm(stroke ~ ., 
+                   data = train_data_smote,
+                   family = binomial)
+
+# Предсказания на тестовых данных
+prob_predictions_smote <- predict(model_smote, 
+                                  newdata = test_data_5, 
+                                  type = "response")
+
+# Преобразуем вероятности в классы с порогом 0.75
+class_predictions_smote <- ifelse(prob_predictions_smote > 0.75, 1, 0)
+
+# Матрица ошибок для модели с SMOTE
+conf_matrix_smote <- confusionMatrix(as.factor(class_predictions_smote), 
+                                     as.factor(test_data_5$stroke),
+                                      positive = "1")
+
+print(conf_matrix_smote)
+
+# ROC кривая
+roc_curve_smote <- roc(test_data_5$stroke, prob_predictions_smote)
+auc_value_smote <- auc(roc_curve_smote)
+cat("AUC для модели с SMOTE: ", auc_value_smote, "\n")
+plot(roc_curve_smote, 
+     main = "ROC curve для модели с SMOTE", 
+     col = "blue", 
+     lwd = 2)
+
+# Precision, Recall, F1 для модели с SMOTE
+TP_smote <- conf_matrix_smote$table[2, 2]
+FP_smote <- conf_matrix_smote$table[1, 2]
+TN_smote <- conf_matrix_smote$table[1, 1]
+FN_smote <- conf_matrix_smote$table[2, 1]
+
+precision_smote <- TP_smote / (TP_smote + FP_smote)
+recall_smote <- TP_smote / (TP_smote + FN_smote)
+f1_score_smote <- 2 * (precision_smote * recall_smote) / (precision_smote + recall_smote)
+
+cat("Precision для SMOTE: ", precision_smote, "\n")
+cat("Recall для SMOTE: ", recall_smote, "\n")
+cat("F1 для SMOTE: ", f1_score_smote, "\n")
+```
+
+```{r}
+
+library(tidymodels)
+library(themis)
+library(caret)
+library(pROC)
+
+# Фиксируем случайность
+set.seed(123)
+
+# Разделение данных на тренировочные и тестовые
+n <- nrow(stroke_data3)
+train_index <- sample(1:n, size = 0.8 * n)
+
+
+# Балансировка тренировочных данных с помощью Undersampling
+train_data_under <- stroke_data3[train_index, ]
+train_data_under_balanced <- ovun.sample(stroke ~ ., 
+                                        data = train_data_under, 
+                                        method = "under", 
+                                        N = 2 * sum(train_data_under$stroke == 1))$data
+
+# Обучение модели на сбалансированных данных с помощью логистической регрессии
+model_under <- glm(stroke ~ ., 
+                  data = train_data_under_balanced,
+                  family = binomial)
+
+# Предсказания на тестовых данных
+prob_predictions_under <- predict(model_under, 
+                                  newdata = test_data_5, 
+                                  type = "response")
+
+# Преобразуем вероятности в классы с порогом 0.75
+class_predictions_under <- ifelse(prob_predictions_under > 0.5, 1, 0)
+
+# Матрица ошибок для модели с Undersampling
+conf_matrix_under <- confusionMatrix(as.factor(class_predictions_under), 
+                                     as.factor(test_data_5$stroke))
+
+print(conf_matrix_under)
+
+# ROC кривая
+roc_curve_under <- roc(test_data_5$stroke, prob_predictions_under)
+auc_value_under <- auc(roc_curve_under)
+cat("AUC для модели с Undersampling: ", auc_value_under, "\n")
+plot(roc_curve_under, 
+     main = "ROC curve для модели с Undersampling", 
+     col = "green", 
+     lwd = 2)
+
+# Precision, Recall, F1 для модели с Undersampling
+TP_under <- conf_matrix_under$table[2, 2]
+FP_under <- conf_matrix_under$table[1, 2]
+TN_under <- conf_matrix_under$table[1, 1]
+FN_under <- conf_matrix_under$table[2, 1]
+
+precision_under <- TP_under / (TP_under + FP_under)
+recall_under <- TP_under / (TP_under + FN_under)
+f1_score_under <- 2 * (precision_under * recall_under) / (precision_under + recall_under)
+
+cat("Precision для Undersampling: ", precision_under, "\n")
+cat("Recall для Undersampling: ", recall_under, "\n")
+cat("F1 для Undersampling: ", f1_score_under, "\n")
+```
+
+Random forest: 
+
+```{r}
+install.packages("randomForest")
+install.packages("caret")
+
+library(randomForest)
+library(caret)
+
+# Фиксируем случайность
+set.seed(123)
+
+# Разделение данных
+n <- nrow(stroke_data3)
+train_index <- sample(1:n, size = 0.8 * n)
+train_data_4 <- stroke_data3[train_index, ]
+test_data_4 <- stroke_data3[-train_index, ]
+
+# Обучение модели Random Forest без балансировки
+rf_model <- randomForest(
+  stroke ~ ., 
+  data = train_data_4, 
+  ntree = 1000,
+  importance = TRUE
+)
+
+# Предсказания вероятностей на тестовой выборке
+rf_prob <- predict(rf_model, newdata = test_data_4, type = "prob")
+
+# Использование стандартного порога 0.5
+rf_pred_class <- ifelse(rf_prob[, "1"] > 0.75, 1, 0)
+
+# Confusion matrix
+conf_matrix_rf <- confusionMatrix(
+  as.factor(rf_pred_class), 
+  as.factor(test_data_4$stroke),
+  positive = "1"
+)
+print(conf_matrix_rf)
+
+# Метрики вручную
+TP2 <- conf_matrix_rf$table[2, 2]
+FP2 <- conf_matrix_rf$table[1, 2]
+TN2 <- conf_matrix_rf$table[1, 1]
+FN2 <- conf_matrix_rf$table[2, 1]
+
+precision2 <- TP2 / (TP2 + FP2)
+recall2 <- TP2 / (TP2 + FN2)
+f1_score2 <- 2 * (precision2 * recall2) / (precision2 + recall2)
+
+cat("🎯 Итоговые метрики по стандартному порогу 0.5:\n")
+cat("Precision: ", precision2, "\n")
+cat("Recall: ", recall2, "\n")
+cat("F1: ", f1_score2, "\n")
+
+```
+## Roc curve 
+#roc_curve4 <- roc(test_data_4$stroke, rf_prob)
+auc_value4 <- auc(roc_curve4)
+print(paste("AUC: ", auc_value4))
+plot(roc_curve4, main = "ROC curve for RF model", col = "blue", lwd = 2)
+
+```{r}
+# Установка и загрузка нужных пакетов
+install.packages("class")      # Для KNN
+install.packages("caret")      # Для метрик и кросс-валидации
+install.packages("ROSE")       # Для балансировки
+
+library(class)
+library(caret)
+library(ROSE)
+
+# Установка случайности
+set.seed(123)
+
+# 📌 1. Разделение данных
+n <- nrow(stroke_data3)
+train_index <- sample(1:n, size = 0.8 * n)
+train_data_5 <- stroke_data3[train_index, ]
+test_data_5 <- stroke_data3[-train_index, ]
+
+# 📌 2. Балансировка тренировочной выборки
+train_balanced_5 <- ovun.sample(
+  stroke ~ ., 
+  data = train_data_5, 
+  method = "over", 
+  N = 2 * sum(train_data_5$stroke == 0)
+)$data
+
+# 📌 3. Целевая переменная
+train_y <- as.factor(train_balanced_5$stroke)
+test_y  <- as.factor(test_data_5$stroke)
+
+# 📌 4. Убираем целевую переменную для обучения модели
+train_x <- train_balanced_5[, setdiff(names(train_balanced_5), "stroke")]
+test_x  <- test_data_5[, setdiff(names(test_data_5), "stroke")]
+
+# 📌 5. Подбор лучшего k с помощью кросс-валидации
+# Определим диапазон k (от 1 до 20)
+k_values <- 1:20
+
+# Инициализируем вектор для хранения результатов F1-метрики
+f1_scores <- numeric(length(k_values))
+
+# Проходим по каждому значению k и вычисляем F1-метрику
+for (k in k_values) {
+  # Строим модель KNN
+  knn_predictions <- knn(
+    train = train_x,
+    test = test_x,
+    cl = train_y,
+    k = k
+  )
+  
+  # Матрица ошибок
+  conf_matrix_knn <- confusionMatrix(knn_predictions, test_y, positive = "1")
+  
+  # Извлекаем TP, FP, TN, FN
+  TP <- conf_matrix_knn$table[2, 2]
+  FP <- conf_matrix_knn$table[1, 2]
+  TN <- conf_matrix_knn$table[1, 1]
+  FN <- conf_matrix_knn$table[2, 1]
+  
+  # Вычисляем Precision, Recall, F1
+  precision <- TP / (TP + FP)
+  recall <- TP / (TP + FN)
+  f1_score <- 2 * (precision * recall) / (precision + recall)
+  
+  # Сохраняем F1 для текущего k
+  f1_scores[k] <- f1_score
+}
+
+# 📌 6. Выводим результаты F1 для каждого k
+cat("F1-метрики для различных значений k:\n")
+print(data.frame(k = k_values, F1 = f1_scores))
+
+# 📌 7. Находим лучшее значение k по F1
+best_k <- k_values[which.max(f1_scores)]
+cat("\nЛучшее значение k по F1-метрике:", best_k, "\n")
+```
+
+
+
+
